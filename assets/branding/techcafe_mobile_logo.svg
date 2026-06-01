@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFE9CF"/>
+      <stop offset="100%" stop-color="#F9C991"/>
+    </linearGradient>
+    <linearGradient id="donut" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D86A16"/>
+      <stop offset="100%" stop-color="#B84C08"/>
+    </linearGradient>
+    <linearGradient id="cup" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2D2A26"/>
+      <stop offset="100%" stop-color="#1A1815"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+  <!-- Donut ring -->
+  <circle cx="512" cy="512" r="330" fill="url(#donut)"/>
+  <circle cx="512" cy="512" r="226" fill="#FFF7EC"/>
+
+  <!-- Sprinkles -->
+  <rect x="352" y="314" width="52" height="14" rx="7" transform="rotate(-25 378 321)" fill="#FFD15D"/>
+  <rect x="448" y="280" width="52" height="14" rx="7" transform="rotate(18 474 287)" fill="#9EDB83"/>
+  <rect x="560" y="286" width="52" height="14" rx="7" transform="rotate(-12 586 293)" fill="#7CC8FF"/>
+  <rect x="650" y="342" width="52" height="14" rx="7" transform="rotate(29 676 349)" fill="#FF8FA8"/>
+  <rect x="686" y="462" width="52" height="14" rx="7" transform="rotate(-9 712 469)" fill="#FFD15D"/>
+  <rect x="658" y="580" width="52" height="14" rx="7" transform="rotate(16 684 587)" fill="#9EDB83"/>
+  <rect x="570" y="658" width="52" height="14" rx="7" transform="rotate(-28 596 665)" fill="#7CC8FF"/>
+  <rect x="460" y="690" width="52" height="14" rx="7" transform="rotate(11 486 697)" fill="#FF8FA8"/>
+  <rect x="352" y="660" width="52" height="14" rx="7" transform="rotate(-15 378 667)" fill="#FFD15D"/>
+  <rect x="292" y="566" width="52" height="14" rx="7" transform="rotate(26 318 573)" fill="#9EDB83"/>
+  <rect x="278" y="450" width="52" height="14" rx="7" transform="rotate(-7 304 457)" fill="#7CC8FF"/>
+  <rect x="302" y="346" width="52" height="14" rx="7" transform="rotate(21 328 353)" fill="#FF8FA8"/>
+
+  <!-- Cup -->
+  <path d="M377 463h250v37c0 86-53 133-125 133s-125-47-125-133v-37z" fill="url(#cup)"/>
+  <rect x="338" y="448" width="338" height="30" rx="15" fill="url(#cup)"/>
+  <path d="M629 499h36c39 0 71 30 71 68s-32 68-71 68h-36v-34h34c20 0 36-15 36-34s-16-34-36-34h-34v-34z" fill="url(#cup)"/>
+
+  <!-- Steam as subtle Wi-Fi lines -->
+  <path d="M454 405c11-22 11-49 0-71" stroke="#2D2A26" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M512 393c15-30 15-66 0-96" stroke="#2D2A26" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M570 405c11-22 11-49 0-71" stroke="#2D2A26" stroke-width="18" stroke-linecap="round" fill="none"/>
+</svg>

@@ -23,6 +23,9 @@ final router = GoRouter(
     ),
     GoRoute(
       path: '/order-success',
+      // A browser refresh or direct link can lose the in-memory order result.
+      redirect: (context, state) =>
+          state.extra is OrderCreatedResponse ? null : '/orders',
       pageBuilder: (context, state) {
         final result = state.extra! as OrderCreatedResponse;
         return _buildTransitionPage(

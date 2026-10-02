@@ -32,6 +32,9 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+/android/app/google-services.json
+/android/.kotlin/
+**/firebase-service-account*.json
 
 # Symbolication related
 app.*.symbols

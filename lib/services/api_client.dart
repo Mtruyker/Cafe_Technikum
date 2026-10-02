@@ -14,6 +14,60 @@ class ApiClient extends ApiClientBase {
       _client =
           client ?? (config.isConfigured ? Supabase.instance.client : null);
 
+  @override
+  Future<List<PickupSlot>> fetchPickupSlots({bool admin = false}) async {
+    final data = await _rpc('list_pickup_slots', params: {'p_admin': admin});
+    return (data as List)
+        .map((e) => PickupSlot.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
+  }
+
+  @override
+  Future<void> savePickupSlot({
+    String? id,
+    required DateTime startsAt,
+    required DateTime cutoffAt,
+    required int capacity,
+    bool enabled = true,
+  }) async {
+    await _rpc(
+      'save_pickup_slot',
+      params: {
+        'p_id': id,
+        'p_starts_at': startsAt.toUtc().toIso8601String(),
+        'p_cutoff_at': cutoffAt.toUtc().toIso8601String(),
+        'p_capacity': capacity,
+        'p_enabled': enabled,
+      },
+    );
+  }
+
+  @override
+  Future<void> setProductStock(String productId, int? remaining) async {
+    await _rpc(
+      'set_product_stock',
+      params: {'p_product_id': productId, 'p_remaining': remaining},
+    );
+  }
+
+  @override
+  Future<CafeOrder> inspectPickupCode(String code) async {
+    final data = await _rpc('inspect_pickup_code', params: {'p_code': code});
+    return CafeOrder.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+
+  @override
+  Future<CafeOrder> redeemPickupCode(
+    String code, {
+    bool paymentReceived = false,
+  }) async {
+    final data = await _rpc(
+      'redeem_pickup_code',
+      params: {'p_code': code, 'p_payment_received': paymentReceived},
+    );
+    return CafeOrder.fromJson(Map<String, dynamic>.from(data as Map));
+  }
+
   final AppBackendConfig _config;
   final SupabaseClient? _client;
 
@@ -92,6 +146,7 @@ class ApiClient extends ApiClientBase {
     required String lastName,
     required String comment,
     required PaymentMethod paymentMethod,
+    String? pickupSlotId,
   }) async {
     final payload = await _rpc(
       'create_order',
@@ -103,6 +158,7 @@ class ApiClient extends ApiClientBase {
         'p_customer_last_name': lastName.trim(),
         'p_comment': comment.trim(),
         'p_payment_method': paymentMethod.value,
+        'p_pickup_slot_id': pickupSlotId,
       },
     );
 

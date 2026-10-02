@@ -10,6 +10,7 @@ class LocalOrderRecord {
     required this.createdAt,
     required this.total,
     required this.status,
+    this.pickupCode = '',
   });
 
   final String orderId;
@@ -17,6 +18,7 @@ class LocalOrderRecord {
   final DateTime createdAt;
   final double total;
   final OrderStatus status;
+  final String pickupCode;
 
   LocalOrderRecord copyWith({OrderStatus? status}) {
     return LocalOrderRecord(
@@ -25,6 +27,7 @@ class LocalOrderRecord {
       createdAt: createdAt,
       total: total,
       status: status ?? this.status,
+      pickupCode: pickupCode,
     );
   }
 
@@ -35,6 +38,7 @@ class LocalOrderRecord {
       'createdAt': createdAt.toIso8601String(),
       'total': total,
       'status': status.value,
+      'pickupCode': pickupCode,
     };
   }
 
@@ -47,6 +51,7 @@ class LocalOrderRecord {
           DateTime.now(),
       total: (json['total'] as num?)?.toDouble() ?? 0,
       status: OrderStatusX.fromString(json['status']?.toString()),
+      pickupCode: json['pickupCode']?.toString() ?? '',
     );
   }
 

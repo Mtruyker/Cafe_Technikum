@@ -1,4 +1,4 @@
-﻿name: cafe_technikum
+name: cafe_technikum
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -42,6 +42,9 @@ dependencies:
   cached_network_image: ^3.4.1
   fl_chart: ^1.1.1
   supabase_flutter: ^2.12.0
+  mobile_scanner: ^7.4.2
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
 
 dev_dependencies:
   flutter_test:

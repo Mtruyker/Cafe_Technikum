@@ -19,6 +19,48 @@ class TechCafeState extends ChangeNotifier {
 
   final ApiClientBase _apiClient;
   final LocalOrdersStoreBase _localOrdersStore;
+  bool _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  Future<List<PickupSlot>> fetchPickupSlots({bool admin = false}) =>
+      _apiClient.fetchPickupSlots(admin: admin);
+  Future<void> savePickupSlot({
+    String? id,
+    required DateTime startsAt,
+    required DateTime cutoffAt,
+    required int capacity,
+    bool enabled = true,
+  }) => _apiClient.savePickupSlot(
+    id: id,
+    startsAt: startsAt,
+    cutoffAt: cutoffAt,
+    capacity: capacity,
+    enabled: enabled,
+  );
+  Future<void> setProductStock(String id, int? remaining) async {
+    await _apiClient.setProductStock(id, remaining);
+    await loadAdminProducts();
+  }
+
+  Future<CafeOrder> redeemPickupCode(
+    String code, {
+    bool paymentReceived = false,
+  }) async {
+    final order = await _apiClient.redeemPickupCode(
+      code,
+      paymentReceived: paymentReceived,
+    );
+    await loadStaffOrders();
+    return order;
+  }
+
+  Future<CafeOrder> inspectPickupCode(String code) =>
+      _apiClient.inspectPickupCode(code);
 
   bool isInitializing = true;
   bool isMenuLoading = false;
@@ -249,6 +291,7 @@ class TechCafeState extends ChangeNotifier {
     required String lastName,
     required String comment,
     required PaymentMethod paymentMethod,
+    String? pickupSlotId,
   }) async {
     if (cartItems.isEmpty) {
       throw const ApiException('Корзина пуста.');
@@ -271,6 +314,7 @@ class TechCafeState extends ChangeNotifier {
       lastName: normalizedLastName,
       comment: comment,
       paymentMethod: paymentMethod,
+      pickupSlotId: pickupSlotId,
     );
 
     final localRecord = LocalOrderRecord(
@@ -279,6 +323,7 @@ class TechCafeState extends ChangeNotifier {
       createdAt: response.createdAt,
       total: response.total,
       status: response.status,
+      pickupCode: response.qrCodeData,
     );
 
     await _localOrdersStore.save(localRecord);
@@ -644,6 +689,39 @@ class TechCafeState extends ChangeNotifier {
   Future<void> reloadRecentOrders() async {
     recentOrders = await _localOrdersStore.load();
     notifyListeners();
+  }
+
+  Future<List<CafeOrder>> refreshOrderNotifications() async {
+    final ready = <CafeOrder>[];
+    for (final record in List<LocalOrderRecord>.of(recentOrders)) {
+      if ([OrderStatus.issued, OrderStatus.canceled].contains(record.status)) {
+        continue;
+      }
+      try {
+        final order = await _apiClient.getOrder(record.orderId);
+        if (_disposed) return ready;
+        if (trackedOrder?.id == order.id) trackedOrder = order;
+        if (record.status != order.status) {
+          await _localOrdersStore.updateStatus(
+            orderId: order.id,
+            status: order.status,
+          );
+          if (_disposed) return ready;
+          recentOrders = recentOrders
+              .map(
+                (r) => r.orderId == order.id
+                    ? r.copyWith(status: order.status)
+                    : r,
+              )
+              .toList();
+          if (order.status == OrderStatus.ready) ready.add(order);
+        }
+      } on ApiException {
+        // Keep the last known status and retry on the next foreground check.
+      }
+    }
+    if (!_disposed) notifyListeners();
+    return ready;
   }
 
   Future<void> removeRecentOrder(String orderId) async {

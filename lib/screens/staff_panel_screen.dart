@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/models.dart';
+import 'pickup_slots_screen.dart';
+import 'pickup_scanner_screen.dart';
+import '../widgets/pickup_slot_picker.dart';
+import '../widgets/stock_editor.dart';
 import '../services/api_exception.dart';
 import '../state/techcafe_state.dart';
 import '../theme.dart';
@@ -59,6 +63,27 @@ class _StaffPanelScreenState extends State<StaffPanelScreen> {
                   : 'Панель персонала (${_roleLabel(session.role)})',
             ),
             actions: [
+              if (session != null &&
+                  ['cashier', 'admin'].contains(session.role))
+                IconButton(
+                  tooltip: 'Выдать по QR',
+                  icon: const Icon(Icons.qr_code_scanner),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PickupScannerScreen(),
+                    ),
+                  ),
+                ),
+              if (state.isAdmin)
+                IconButton(
+                  tooltip: 'Расписание перемен',
+                  icon: const Icon(Icons.schedule),
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PickupSlotsScreen(),
+                    ),
+                  ),
+                ),
               if (session != null)
                 IconButton(
                   onPressed: () => _refreshCurrentTab(state),
@@ -849,9 +874,16 @@ class _StaffOrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final availableStatuses = OrderStatus.values
-        .where((status) => status != OrderStatus.unknown)
-        .toList(growable: false);
+    final availableStatuses = [
+      order.status,
+      ...switch (order.status) {
+        OrderStatus.created => [OrderStatus.accepted, OrderStatus.canceled],
+        OrderStatus.accepted => [OrderStatus.cooking, OrderStatus.canceled],
+        OrderStatus.cooking => [OrderStatus.ready, OrderStatus.canceled],
+        OrderStatus.ready => [OrderStatus.canceled],
+        _ => <OrderStatus>[],
+      },
+    ];
     final selectedStatus = order.status == OrderStatus.unknown
         ? OrderStatus.created
         : order.status;
@@ -880,7 +912,7 @@ class _StaffOrderCard extends StatelessWidget {
                           style: theme.textTheme.bodyMedium,
                         ),
                       Text(
-                        'Создан: ${order.createdAt.toLocal()}',
+                        'Создан: ${order.createdAt.toLocal()}${order.pickupAt == null ? '' : '\nК получению: ${pickupTimeLabel(order.pickupAt!)}'}',
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -961,12 +993,14 @@ class _StaffOrderCard extends StatelessWidget {
                     ),
                   )
                   .toList(growable: false),
-              onChanged: (next) {
-                if (next == null || next == order.status) {
-                  return;
-                }
-                onStatusChanged(next);
-              },
+              onChanged: availableStatuses.length == 1
+                  ? null
+                  : (next) {
+                      if (next == null || next == order.status) {
+                        return;
+                      }
+                      onStatusChanged(next);
+                    },
             ),
           ],
         ),
@@ -1058,6 +1092,7 @@ class _AdminProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(product.name, style: theme.textTheme.titleMedium),
+                  StockEditor(product: product),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
                     formatRub(product.price),
@@ -1108,7 +1143,7 @@ class _AdminProductCard extends StatelessWidget {
             Column(
               children: [
                 Switch(
-                  value: product.isAvailable,
+                  value: product.isEnabled,
                   onChanged: onAvailabilityChanged,
                 ),
                 IconButton(
@@ -1268,7 +1303,7 @@ class _ProductEditorDialogState extends State<_ProductEditorDialog> {
     );
 
     _categoryId = widget.product?.categoryId ?? widget.categories.first.id;
-    _isAvailable = widget.product?.isAvailable ?? true;
+    _isAvailable = widget.product?.isEnabled ?? true;
   }
 
   @override

@@ -6,6 +6,9 @@ Flutter-клиент теперь должен работать напрямую
 
 - Выполните `supabase/migrations/202604160001_initial_schema.sql`
 - Затем выполните `supabase/migrations/202604160002_demo_seed.sql`
+- Затем обе миграции `202604160003_clear_completed_staff_orders.sql` и `202604160003_customer_names.sql`.
+- Для предзаказов и уведомлений выполните `202610020001_preorders_inventory_pickup.sql`, затем `202610020002_order_push.sql`.
+- Создайте слоты в панели администратора. [Настройка предзаказов и Android push](../docs/PREORDERS_AND_NOTIFICATIONS.md).
 
 ## 2. Создание сотрудников
 

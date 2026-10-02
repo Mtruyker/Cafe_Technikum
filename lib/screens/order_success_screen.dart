@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../models/models.dart';
+import '../widgets/pickup_slot_picker.dart';
+import '../widgets/order_push_button.dart';
 import '../theme.dart';
 import '../utils/formatters.dart';
 
@@ -47,6 +49,12 @@ class OrderSuccessScreen extends StatelessWidget {
                       'Сумма: ${formatRub(result.total)}',
                       textAlign: TextAlign.center,
                     ),
+                    if (result.pickupAt != null)
+                      Text(
+                        'К получению: ${pickupTimeLabel(result.pickupAt!)} (UTC+4)',
+                        textAlign: TextAlign.center,
+                      ),
+                    OrderPushButton(pickupCode: result.qrCodeData),
                     const SizedBox(height: AppSpacing.lg),
                     LayoutBuilder(
                       builder: (context, constraints) {
@@ -99,7 +107,7 @@ class OrderSuccessScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      'Покажите номер или QR на кассе',
+                      'Покажите QR на кассе для получения заказа',
                       style: Theme.of(context).textTheme.bodyMedium,
                       textAlign: TextAlign.center,
                     ),

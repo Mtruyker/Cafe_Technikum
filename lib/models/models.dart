@@ -2,6 +2,7 @@ export 'category.dart';
 export 'product.dart';
 export 'cart_item.dart';
 export 'order.dart';
+export 'pickup_slot.dart';
 export 'enums.dart';
 export 'payment.dart';
 export 'local_order_record.dart';

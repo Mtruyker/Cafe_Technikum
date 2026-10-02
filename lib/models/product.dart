@@ -61,7 +61,9 @@ class Product {
     required this.imageUrl,
     required this.isAvailable,
     required this.modifierGroups,
-  });
+    this.stockRemaining,
+    bool? isEnabled,
+  }) : isEnabled = isEnabled ?? isAvailable;
 
   final String id;
   final String categoryId;
@@ -70,7 +72,9 @@ class Product {
   final double price;
   final String imageUrl;
   final bool isAvailable;
+  final bool isEnabled;
   final List<ModifierGroup> modifierGroups;
+  final int? stockRemaining;
 
   factory Product.fromJson(JsonMap json) {
     final rawGroups = json['modifierGroups'] as List<dynamic>? ?? const [];
@@ -82,7 +86,12 @@ class Product {
       description: json['description']?.toString() ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0,
       imageUrl: json['imageUrl']?.toString() ?? '',
-      isAvailable: json['isAvailable'] as bool? ?? false,
+      isAvailable:
+          (json['isAvailable'] as bool? ?? false) &&
+          ((json['stockRemaining'] as num?)?.toInt() ?? 1) > 0,
+      stockRemaining: (json['stockRemaining'] as num?)?.toInt(),
+      isEnabled:
+          json['isEnabled'] as bool? ?? json['isAvailable'] as bool? ?? false,
       modifierGroups: rawGroups
           .whereType<Map<String, dynamic>>()
           .map(ModifierGroup.fromJson)

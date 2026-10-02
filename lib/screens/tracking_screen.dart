@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../models/models.dart';
+import '../widgets/pickup_slot_picker.dart';
+import '../widgets/order_push_button.dart';
 import '../services/api_exception.dart';
 import '../state/techcafe_state.dart';
 import '../theme.dart';
@@ -183,6 +186,9 @@ class _OrderDetailsCard extends StatelessWidget {
               Text('Клиент: ${order.customerFullName}'),
             Text('Статус: ${order.status.label}'),
             Text('Создан: ${order.createdAt.toLocal()}'),
+            if (order.pickupAt != null)
+              Text('К получению: ${pickupTimeLabel(order.pickupAt!)} (UTC+4)'),
+            _SavedPickupCode(order: order),
             Text('Сумма: ${formatRub(order.total)}'),
             if ((order.comment ?? '').isNotEmpty) ...[
               const SizedBox(height: AppSpacing.xs),
@@ -213,6 +219,35 @@ class _OrderDetailsCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SavedPickupCode extends StatelessWidget {
+  const _SavedPickupCode({required this.order});
+  final CafeOrder order;
+  @override
+  Widget build(BuildContext context) {
+    final saved = context
+        .watch<TechCafeState>()
+        .recentOrders
+        .where((r) => r.orderId == order.id)
+        .firstOrNull;
+    if (saved == null ||
+        saved.pickupCode.isEmpty ||
+        [OrderStatus.issued, OrderStatus.canceled].contains(order.status)) {
+      return const SizedBox.shrink();
+    }
+    return Column(
+      children: [
+        QrImageView(
+          data: saved.pickupCode,
+          size: 200,
+          backgroundColor: Colors.white,
+        ),
+        const Text('Покажите QR на кассе для получения заказа'),
+        OrderPushButton(pickupCode: saved.pickupCode),
+      ],
     );
   }
 }

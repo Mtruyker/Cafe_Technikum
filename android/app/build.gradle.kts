@@ -35,6 +35,11 @@ android {
     }
 }
 
+// Local Firebase config is optional for builds without Android push.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17

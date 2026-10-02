@@ -1,5 +1,11 @@
 # TechCafe (Flutter + Supabase)
 
+## Предзаказы и выдача
+
+Добавлены выбор перемены, лимит порций кухни, учёт остатков, выдача по одноразовому QR и уведомления о готовности. Расписание: 10:00–10:10, 11:40–12:10, 13:40–13:50 (UTC+4). Слоты на конкретную дату создаёт администратор через кнопку часов в панели персонала.
+
+Перед запуском обновлённого клиента примените новые SQL-миграции и создайте слоты. Android push требуют конфигурации Firebase и развёртывания Edge Function. Порядок установки, настройки и проверки: [Предзаказы и уведомления](docs/PREORDERS_AND_NOTIFICATIONS.md).
+
 Текущая версия проекта работает без обязательного Dart REST API: Flutter-клиент ходит напрямую в `Supabase Auth` и SQL RPC-функции.
 
 ## Структура
@@ -15,6 +21,10 @@
 1. Выполните SQL из:
    - `supabase/migrations/202604160001_initial_schema.sql`
    - `supabase/migrations/202604160002_demo_seed.sql`
+   - `supabase/migrations/202604160003_clear_completed_staff_orders.sql`
+   - `supabase/migrations/202604160003_customer_names.sql`
+   - `supabase/migrations/202610020001_preorders_inventory_pickup.sql`
+   - `supabase/migrations/202610020002_order_push.sql`
 2. Создайте сотрудников в `Authentication -> Users`.
 3. Назначьте роль сотруднику:
 

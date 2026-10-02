@@ -2,6 +2,21 @@ import '../models/models.dart';
 import '../utils/formatters.dart';
 
 abstract class ApiClientBase {
+  Future<List<PickupSlot>> fetchPickupSlots({bool admin = false});
+  Future<void> savePickupSlot({
+    String? id,
+    required DateTime startsAt,
+    required DateTime cutoffAt,
+    required int capacity,
+    bool enabled = true,
+  });
+  Future<void> setProductStock(String productId, int? remaining);
+  Future<CafeOrder> inspectPickupCode(String code);
+  Future<CafeOrder> redeemPickupCode(
+    String code, {
+    bool paymentReceived = false,
+  });
+
   Future<List<Category>> fetchCategories();
 
   Future<StaffSession?> restoreStaffSession();
@@ -19,6 +34,7 @@ abstract class ApiClientBase {
     required String lastName,
     required String comment,
     required PaymentMethod paymentMethod,
+    String? pickupSlotId,
   });
 
   Future<CafeOrder> getOrder(String key);

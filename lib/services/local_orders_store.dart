@@ -26,7 +26,20 @@ class LocalOrdersStore extends LocalOrdersStoreBase {
     final withoutDuplicate = records
         .where((entry) => entry.orderId != order.orderId)
         .toList();
-    final updated = [order, ...withoutDuplicate];
+    final previous = records
+        .where((entry) => entry.orderId == order.orderId)
+        .firstOrNull;
+    final saved = LocalOrderRecord(
+      orderId: order.orderId,
+      orderNumber: order.orderNumber,
+      createdAt: order.createdAt,
+      total: order.total,
+      status: order.status,
+      pickupCode: order.pickupCode.isNotEmpty
+          ? order.pickupCode
+          : previous?.pickupCode ?? '',
+    );
+    final updated = [saved, ...withoutDuplicate];
 
     final limited = updated.take(20).toList(growable: false);
 

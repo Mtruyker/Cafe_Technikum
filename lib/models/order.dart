@@ -69,6 +69,7 @@ class CafeOrder {
     required this.paymentStatus,
     required this.providerPaymentId,
     required this.paidAt,
+    this.pickupAt,
     required this.items,
   });
 
@@ -84,6 +85,7 @@ class CafeOrder {
   final PaymentStatus paymentStatus;
   final String? providerPaymentId;
   final DateTime? paidAt;
+  final DateTime? pickupAt;
   final List<OrderItemSnapshot> items;
 
   String get customerFullName => [
@@ -113,6 +115,7 @@ class CafeOrder {
       ),
       providerPaymentId: json['providerPaymentId']?.toString(),
       paidAt: DateTime.tryParse(json['paidAt']?.toString() ?? ''),
+      pickupAt: DateTime.tryParse(json['pickupAt']?.toString() ?? ''),
       items: rawItems
           .whereType<Map<String, dynamic>>()
           .map(OrderItemSnapshot.fromJson)
@@ -133,6 +136,7 @@ class OrderCreatedResponse {
     required this.paymentStatus,
     required this.providerPaymentId,
     required this.paidAt,
+    this.pickupAt,
   });
 
   final String orderId;
@@ -145,6 +149,7 @@ class OrderCreatedResponse {
   final PaymentStatus paymentStatus;
   final String? providerPaymentId;
   final DateTime? paidAt;
+  final DateTime? pickupAt;
 
   String get resolvedQrCodeData {
     final qrValue = qrCodeData.trim();
@@ -178,6 +183,7 @@ class OrderCreatedResponse {
       ),
       providerPaymentId: json['providerPaymentId']?.toString(),
       paidAt: DateTime.tryParse(json['paidAt']?.toString() ?? ''),
+      pickupAt: DateTime.tryParse(json['pickupAt']?.toString() ?? ''),
     );
   }
 }

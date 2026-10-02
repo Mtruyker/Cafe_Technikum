@@ -7,6 +7,7 @@ import 'services/api_client.dart';
 import 'services/app_backend_config.dart';
 import 'services/local_orders_store.dart';
 import 'state/techcafe_state.dart';
+import 'services/order_push_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,7 @@ Future<void> main() async {
     );
   }
 
+  await OrderPushService.initialize();
   runApp(
     ChangeNotifierProvider(
       create: (_) => TechCafeState(

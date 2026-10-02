@@ -8,6 +8,7 @@ import '../state/techcafe_state.dart';
 import '../theme.dart';
 import '../utils/formatters.dart';
 import '../widgets/feedback_states.dart';
+import '../widgets/pickup_slot_picker.dart';
 import '../widgets/guest_navigation_bar.dart';
 import '../widgets/validated_form_fields.dart';
 
@@ -24,6 +25,8 @@ class _CartScreenState extends State<CartScreen> {
   late final TextEditingController _lastNameController;
   late final TextEditingController _commentController;
   bool _isSubmitting = false;
+  String? _pickupSlotId;
+  int _slotRevision = 0;
   PaymentMethod _paymentMethod = PaymentMethod.payOnPickup;
 
   @override
@@ -150,6 +153,11 @@ class _CartScreenState extends State<CartScreen> {
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.xs),
+                              PickupSlotPicker(
+                                key: ValueKey(_slotRevision),
+                                portions: state.cartItemsCount,
+                                onChanged: (id) => _pickupSlotId = id,
+                              ),
                               const Text('Получение: самовывоз'),
                               const Text(
                                 'Оплата: наличные/перевод/карта у кассы',
@@ -256,6 +264,7 @@ class _CartScreenState extends State<CartScreen> {
         lastName: _lastNameController.text,
         comment: _commentController.text,
         paymentMethod: _paymentMethod,
+        pickupSlotId: _pickupSlotId,
       );
       if (!context.mounted) {
         return;
@@ -263,6 +272,12 @@ class _CartScreenState extends State<CartScreen> {
 
       context.pushReplacement('/order-success', extra: result);
     } on ApiException catch (error) {
+      if (mounted) {
+        setState(() {
+          _slotRevision++;
+          _pickupSlotId = null;
+        });
+      }
       if (!context.mounted) {
         return;
       }

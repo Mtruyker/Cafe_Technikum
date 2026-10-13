@@ -24,15 +24,12 @@ class _ProductCardState extends State<ProductCard> {
     final theme = Theme.of(context);
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final style = ProductCardStyle.fromCategoryId(widget.product.categoryId);
-    final surfaceColor = Color.alphaBlend(
-      style.primary.withValues(alpha: 0.07),
-      theme.colorScheme.surface,
-    );
+    const surfaceColor = Colors.white;
     final borderColor = style.primary.withValues(
-      alpha: _isHovered ? 0.24 : 0.12,
+      alpha: _isHovered ? 0.24 : 0.08,
     );
     final shadowColor = style.primary.withValues(
-      alpha: _isHovered ? 0.18 : 0.08,
+      alpha: _isHovered ? 0.09 : 0.025,
     );
     final verticalOffset = _isPressed ? 1.0 : (_isHovered ? -4.0 : 0.0);
     final useStackedActions = textScale > 1.15;
@@ -89,14 +86,25 @@ class _ProductCardState extends State<ProductCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      height: 188,
-                      width: double.infinity,
-                      child: ProductCardImage(
-                        imageUrl: widget.product.imageUrl,
-                        style: style,
-                        productName: widget.product.name,
-                      ),
+                    Stack(
+                      children: [
+                        SizedBox(
+                          height: 188,
+                          width: double.infinity,
+                          child: ProductCardImage(
+                            imageUrl: widget.product.imageUrl,
+                            style: style,
+                            productName: widget.product.name,
+                          ),
+                        ),
+                        Positioned(
+                          right: 12,
+                          bottom: 12,
+                          child: _AvailabilityBadge(
+                            isAvailable: widget.product.isAvailable,
+                          ),
+                        ),
+                      ],
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
@@ -121,10 +129,6 @@ class _ProductCardState extends State<ProductCard> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: AppSpacing.xs),
-                              _AvailabilityBadge(
-                                isAvailable: widget.product.isAvailable,
-                              ),
                             ],
                           ),
                           const SizedBox(height: AppSpacing.xs),
@@ -147,7 +151,7 @@ class _ProductCardState extends State<ProductCard> {
                                 Text(
                                   formatRub(widget.product.price),
                                   style: theme.textTheme.titleLarge?.copyWith(
-                                    color: style.primary,
+                                    color: const Color(0xFF253D32),
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -157,26 +161,29 @@ class _ProductCardState extends State<ProductCard> {
                                   child: _AddToCartButton(
                                     product: widget.product,
                                     onPressed: widget.onAdd,
-                                    styleColor: style.primary,
+                                    styleColor: const Color(0xFF253D32),
                                   ),
                                 ),
                               ],
                             )
                           else
-                            Row(
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 16,
+                              runSpacing: 12,
                               children: [
                                 Text(
                                   formatRub(widget.product.price),
                                   style: theme.textTheme.titleLarge?.copyWith(
-                                    color: style.primary,
+                                    color: const Color(0xFF253D32),
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const Spacer(),
                                 _AddToCartButton(
                                   product: widget.product,
                                   onPressed: widget.onAdd,
-                                  styleColor: style.primary,
+                                  styleColor: const Color(0xFF253D32),
                                 ),
                               ],
                             ),
@@ -215,9 +222,9 @@ class _AvailabilityBadge extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.14),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: color.withValues(alpha: 0.28)),
+          border: Border.all(color: color.withValues(alpha: 0.12)),
         ),
         child: ExcludeSemantics(
           child: Row(

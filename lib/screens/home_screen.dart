@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/models.dart';
 import '../state/techcafe_state.dart';
 import '../theme.dart';
+import '../utils/formatters.dart';
 import '../widgets/feedback_states.dart';
 import '../widgets/guest_navigation_bar.dart';
 import '../widgets/loading_placeholders.dart';
@@ -41,7 +42,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('КафеТехникум'),
+            title: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.local_cafe_rounded, size: 24),
+                SizedBox(width: 10),
+                Text('КафеТехникум'),
+              ],
+            ),
             actions: [
               if (!showGuestBottomNavigation)
                 IconButton(
@@ -89,7 +97,12 @@ class _HomeScreenState extends State<HomeScreen> {
             },
             child: KeyedSubtree(
               key: ValueKey(_bodyKey(state)),
-              child: _buildBody(context, state),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: _buildBody(context, state),
+                ),
+              ),
             ),
           ),
         );
@@ -141,12 +154,51 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Column(
             children: [
+              if (MediaQuery.sizeOf(context).width >= 700 &&
+                  MediaQuery.sizeOf(context).height -
+                          MediaQuery.viewInsetsOf(context).bottom >
+                      620 &&
+                  MediaQuery.textScalerOf(context).scale(1) <= 1.3 &&
+                  state.initializationError == null)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF253D32),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Вкусная перемена',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.7,
+                        ),
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        'Выберите любимое. Заберите к своей перемене.',
+                        style: TextStyle(color: Color(0xFFDEE8DD), height: 1.4),
+                      ),
+                    ],
+                  ),
+                ),
               TextField(
                 controller: _searchController,
                 decoration: const InputDecoration(
-                  hintText: 'Поиск по названию',
+                  hintText: 'Что хочется сегодня?',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(18)),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
                 onChanged: state.setSearchQuery,
               ),
@@ -166,6 +218,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                   right: AppSpacing.xs,
                                 ),
                                 child: ChoiceChip(
+                                  showCheckmark: false,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 10,
+                                  ),
+                                  selectedColor: const Color(0xFF253D32),
+                                  backgroundColor: Colors.white,
+                                  side: BorderSide.none,
+                                  shape: const StadiumBorder(),
+                                  labelStyle: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : const Color(0xFF253D32),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                   label: Text(category.name),
                                   selected: isSelected,
                                   onSelected: (_) =>
@@ -178,15 +245,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.xs),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text('В наличии'),
-                      Switch(
-                        value: state.inStockOnly,
-                        onChanged: state.setInStockOnly,
-                      ),
-                    ],
+                  FilterChip(
+                    label: const Text('В наличии'),
+                    selected: state.inStockOnly,
+                    onSelected: state.setInStockOnly,
                   ),
                 ],
               ),
@@ -219,26 +281,83 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                       return false;
                     },
-                    child: ListView.builder(
-                      itemCount:
-                          state.visibleProducts.length +
-                          (state.isLoadingMoreProducts ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index >= state.visibleProducts.length) {
-                          return const LoadingListTail();
-                        }
-                        final product = state.visibleProducts[index];
-                        return ProductCard(
-                          product: product,
-                          onAdd: product.isAvailable
-                              ? () => _onAddPressed(context, state, product)
-                              : null,
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final scale = MediaQuery.textScalerOf(context).scale(1);
+                        final columns = scale > 1.3
+                            ? 1
+                            : constraints.maxWidth >= 1040
+                            ? 3
+                            : constraints.maxWidth >= 700
+                            ? 2
+                            : 1;
+                        final rows = (state.visibleProducts.length / columns)
+                            .ceil();
+                        return ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(top: 8, bottom: 20),
+                          itemCount:
+                              rows + (state.isLoadingMoreProducts ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index >= rows) {
+                              return const LoadingListTail();
+                            }
+                            return Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: List.generate(columns, (column) {
+                                final itemIndex = index * columns + column;
+                                if (itemIndex >= state.visibleProducts.length) {
+                                  return const Expanded(child: SizedBox());
+                                }
+                                final product =
+                                    state.visibleProducts[itemIndex];
+                                return Expanded(
+                                  child: ProductCard(
+                                    key: ValueKey(product.id),
+                                    product: product,
+                                    onAdd: product.isAvailable
+                                        ? () => _onAddPressed(
+                                            context,
+                                            state,
+                                            product,
+                                          )
+                                        : null,
+                                  ),
+                                );
+                              }),
+                            );
+                          },
                         );
                       },
                     ),
                   ),
           ),
         ),
+        if (state.cartItemsCount > 0)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF253D32),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                ),
+                onPressed: () => context.push('/cart'),
+                icon: const Icon(Icons.shopping_bag_outlined),
+                label: Text(
+                  'Корзина · ${state.cartItemsCount} · ${formatRub(state.cartTotal)}',
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }

@@ -36,6 +36,10 @@ abstract final class AppTheme {
       ),
       useMaterial3: true,
       scaffoldBackgroundColor: AppColors.scaffoldBg,
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        indicatorColor: Color(0xFFDCE8DF),
+      ),
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         backgroundColor: AppColors.scaffoldBg,

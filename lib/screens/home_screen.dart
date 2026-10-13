@@ -38,7 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Consumer<TechCafeState>(
       builder: (context, state, _) {
-        final showGuestBottomNavigation = useGuestBottomNavigation;
+        final showGuestBottomNavigation = useGuestBottomNavigation(context);
 
         return Scaffold(
           appBar: AppBar(

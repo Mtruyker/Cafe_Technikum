@@ -17,6 +17,8 @@
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#253D32">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="КафеТехникум — меню, оформление и отслеживание заказов.">
 
@@ -31,8 +33,32 @@
 
   <title>КафеТехникум</title>
   <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="splash.css">
 </head>
 <body>
+  <div id="cafe-splash" role="status" aria-live="polite" aria-label="Загружается КафеТехникум">
+    <div class="splash-brand">
+      <svg class="splash-cup" viewBox="0 0 160 160" fill="none" aria-hidden="true">
+        <g stroke="#E5EBDD" stroke-width="4" stroke-linecap="round">
+          <path class="steam steam-one" d="M58 54C44 40 68 34 58 20"/>
+          <path class="steam steam-two" d="M80 50C66 36 90 30 80 16"/>
+          <path class="steam steam-three" d="M102 54C88 40 112 34 102 20"/>
+          <path d="M42 72H112V103C112 121 99 133 77 133C55 133 42 121 42 103V72Z" fill="#E5EBDD"/>
+          <path d="M113 78H122C146 78 141 111 114 111"/>
+          <path d="M35 143H123"/>
+        </g>
+      </svg>
+      <h1>КафеТехникум</h1>
+      <p>Вкусная перемена</p>
+    </div>
+    <div class="splash-footer">
+      <div class="splash-loader" aria-hidden="true"><span></span></div>
+      <p id="splash-message">Готовим меню…</p>
+      <button id="splash-retry" type="button" hidden>Повторить загрузку</button>
+    </div>
+  </div>
+  <noscript><style>#cafe-splash { display: none; } body { background: #fff; color: #253d32; }</style>Для работы меню включите JavaScript в настройках браузера.</noscript>
+  <script src="splash.js"></script>
   <script src="staff_notification_sound.js"></script>
   <script src="flutter_bootstrap.js" async></script>
 </body>

@@ -51,7 +51,7 @@ class _CartScreenState extends State<CartScreen> {
       builder: (context, state, _) {
         return Scaffold(
           appBar: AppBar(title: const Text('Корзина')),
-          bottomNavigationBar: useGuestBottomNavigation
+          bottomNavigationBar: useGuestBottomNavigation(context)
               ? GuestNavigationBar(
                   currentItem: GuestNavigationItem.cart,
                   cartItemsCount: state.cartItemsCount,

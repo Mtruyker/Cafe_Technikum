@@ -132,7 +132,7 @@ class _RecentOrdersScreenState extends State<RecentOrdersScreen> {
                 ),
             ],
           ),
-          bottomNavigationBar: useGuestBottomNavigation
+          bottomNavigationBar: useGuestBottomNavigation(context)
               ? GuestNavigationBar(
                   currentItem: GuestNavigationItem.orders,
                   cartItemsCount: state.cartItemsCount,

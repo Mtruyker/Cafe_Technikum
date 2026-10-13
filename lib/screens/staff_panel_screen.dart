@@ -18,6 +18,7 @@ import '../widgets/loading_placeholders.dart';
 import '../widgets/order_status_badge.dart';
 import '../widgets/staff_report_charts.dart';
 import '../widgets/validated_form_fields.dart';
+import '../widgets/staff_live_orders_banner.dart';
 
 class StaffPanelScreen extends StatefulWidget {
   const StaffPanelScreen({super.key});
@@ -101,7 +102,20 @@ class _StaffPanelScreenState extends State<StaffPanelScreen> {
                 ),
             ],
           ),
-          body: session == null ? _buildLogin(state) : _buildPanel(state),
+          body: session == null
+              ? _buildLogin(state)
+              : Column(
+                  children: [
+                    StaffLiveOrdersBanner(
+                      key: ObjectKey(session),
+                      onShowOrders: () {
+                        setState(() => _tabIndex = 0);
+                        unawaited(_showNewOrders(state));
+                      },
+                    ),
+                    Expanded(child: _buildPanel(state)),
+                  ],
+                ),
           bottomNavigationBar: session != null && state.isAdmin
               ? NavigationBar(
                   selectedIndex: _tabIndex,
@@ -227,6 +241,18 @@ class _StaffPanelScreenState extends State<StaffPanelScreen> {
     );
   }
 
+  Future<void> _showNewOrders(TechCafeState state) async {
+    try {
+      await state.loadStaffOrders(status: '');
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    }
+  }
+
   Widget _buildPanel(TechCafeState state) {
     if (!state.isAdmin) {
       return _buildOrdersTab(state);
@@ -257,6 +283,7 @@ class _StaffPanelScreenState extends State<StaffPanelScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
+                  key: ValueKey(currentFilter),
                   initialValue: _statusFilters.contains(currentFilter)
                       ? currentFilter
                       : '',

@@ -2,6 +2,8 @@ import '../models/models.dart';
 import '../utils/formatters.dart';
 
 abstract class ApiClientBase {
+  Stream<StaffRealtimeSignal> watchStaffOrderChanges();
+  Future<StaffOrderEventBatch> pollStaffOrderEvents({int? after});
   Future<List<PickupSlot>> fetchPickupSlots({bool admin = false});
   Future<void> savePickupSlot({
     String? id,

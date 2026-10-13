@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../services/api_client_base.dart';
 import '../services/api_exception.dart';
 import '../services/local_orders_store_base.dart';
+import '../services/staff_orders_live_controller.dart';
 import '../utils/formatters.dart';
 
 class TechCafeState extends ChangeNotifier {
@@ -20,6 +21,48 @@ class TechCafeState extends ChangeNotifier {
   final ApiClientBase _apiClient;
   final LocalOrdersStoreBase _localOrdersStore;
   bool _disposed = false;
+  int _staffOrdersRequest = 0;
+
+  StaffOrdersLiveController createStaffOrdersLiveController() {
+    final session = staffSession;
+    return StaffOrdersLiveController(
+      api: _apiClient,
+      refreshOrders: () async {
+        if (!_disposed && session != null && identical(session, staffSession)) {
+          await refreshStaffOrdersSilently();
+        }
+      },
+    );
+  }
+
+  Future<void> refreshStaffOrdersSilently() async {
+    final session = staffSession;
+    if (session == null ||
+        _disposed ||
+        isStaffOrdersLoading ||
+        isLoadingMoreStaffOrders) {
+      return;
+    }
+    final request = ++_staffOrdersRequest;
+    final filter = staffStatusFilter;
+    final response = await _apiClient
+        .fetchStaffOrders(
+          token: session.token,
+          status: filter.isEmpty ? null : filter,
+          page: 1,
+          limit: _staffOrdersPage * _pageLimit,
+        )
+        .timeout(const Duration(seconds: 15));
+    if (_disposed ||
+        !identical(session, staffSession) ||
+        request != _staffOrdersRequest ||
+        filter != staffStatusFilter) {
+      return;
+    }
+    staffOrders = response.items;
+    hasMoreStaffOrders = response.hasMore;
+    notifyListeners();
+  }
 
   @override
   void dispose() {
@@ -425,6 +468,7 @@ class TechCafeState extends ChangeNotifier {
   }
 
   void logoutStaff() {
+    _staffOrdersRequest++;
     unawaited(_apiClient.logoutStaff());
     staffSession = null;
     staffOrders = const [];
@@ -433,6 +477,8 @@ class TechCafeState extends ChangeNotifier {
     staffStatusFilter = '';
     staffError = null;
     isClearingCompletedStaffOrders = false;
+    isStaffOrdersLoading = false;
+    isLoadingMoreStaffOrders = false;
     notifyListeners();
   }
 
@@ -442,7 +488,10 @@ class TechCafeState extends ChangeNotifier {
       throw const ApiException('Сначала выполните вход.');
     }
 
+    final request = ++_staffOrdersRequest;
+
     isStaffOrdersLoading = true;
+    isLoadingMoreStaffOrders = false;
     staffError = null;
     _staffOrdersPage = 1;
     hasMoreStaffOrders = false;
@@ -458,22 +507,34 @@ class TechCafeState extends ChangeNotifier {
         page: 1,
         limit: _pageLimit,
       );
+      if (_disposed ||
+          request != _staffOrdersRequest ||
+          !identical(session, staffSession)) {
+        return;
+      }
       staffOrders = response.items;
       hasMoreStaffOrders = response.hasMore;
       _staffOrdersPage = 1;
     } on ApiException catch (error) {
+      if (_disposed || request != _staffOrdersRequest) return;
       staffError = error.message;
       rethrow;
     } finally {
-      isStaffOrdersLoading = false;
-      notifyListeners();
+      if (!_disposed && request == _staffOrdersRequest) {
+        isStaffOrdersLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   Future<void> loadMoreStaffOrders() async {
-    if (isLoadingMoreStaffOrders || !hasMoreStaffOrders) return;
+    if (isStaffOrdersLoading || isLoadingMoreStaffOrders || !hasMoreStaffOrders) {
+      return;
+    }
     final session = staffSession;
     if (session == null) return;
+
+    final request = ++_staffOrdersRequest;
 
     isLoadingMoreStaffOrders = true;
     notifyListeners();
@@ -485,14 +546,21 @@ class TechCafeState extends ChangeNotifier {
         page: _staffOrdersPage + 1,
         limit: _pageLimit,
       );
+      if (_disposed ||
+          request != _staffOrdersRequest ||
+          !identical(session, staffSession)) {
+        return;
+      }
       staffOrders = [...staffOrders, ...response.items];
       hasMoreStaffOrders = response.hasMore;
       _staffOrdersPage++;
     } on ApiException catch (_) {
       // Молча игнорируем — основной список уже загружен
     } finally {
-      isLoadingMoreStaffOrders = false;
-      notifyListeners();
+      if (!_disposed && request == _staffOrdersRequest) {
+        isLoadingMoreStaffOrders = false;
+        notifyListeners();
+      }
     }
   }
 

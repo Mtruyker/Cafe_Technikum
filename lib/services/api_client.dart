@@ -72,6 +72,53 @@ class ApiClient extends ApiClientBase {
   final SupabaseClient? _client;
 
   @override
+  Stream<StaffRealtimeSignal> watchStaffOrderChanges() {
+    final client = _ensureConfigured();
+    RealtimeChannel? channel;
+    var canceled = false;
+    late final StreamController<StaffRealtimeSignal> controller;
+    void emit(StaffRealtimeSignal event) {
+      if (!canceled) controller.add(event);
+    }
+
+    controller = StreamController<StaffRealtimeSignal>(
+      onListen: () {
+        channel = client
+            .channel('staff-orders-${DateTime.now().microsecondsSinceEpoch}')
+            .onPostgresChanges(
+              event: PostgresChangeEvent.insert,
+              schema: 'public',
+              table: 'staff_order_events',
+              callback: (_) => emit(StaffRealtimeSignal.changed),
+            )
+            .subscribe((status, error) {
+              emit(
+                status == RealtimeSubscribeStatus.subscribed
+                    ? StaffRealtimeSignal.connected
+                    : StaffRealtimeSignal.disconnected,
+              );
+            });
+      },
+      onCancel: () async {
+        canceled = true;
+        if (channel != null) await client.removeChannel(channel!);
+      },
+    );
+    return controller.stream;
+  }
+
+  @override
+  Future<StaffOrderEventBatch> pollStaffOrderEvents({int? after}) async {
+    final data = await _rpc(
+      'poll_staff_order_events',
+      params: {'p_after': after},
+    ).timeout(const Duration(seconds: 15));
+    return StaffOrderEventBatch.fromJson(
+      Map<String, dynamic>.from(data as Map),
+    );
+  }
+
+  @override
   Future<List<Category>> fetchCategories() async {
     final payload = await _rpc('list_categories');
 

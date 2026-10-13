@@ -72,6 +72,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+      expect(find.byTooltip('Панель персонала'), findsOneWidget);
       expect(find.textContaining('Корзина · 1'), findsOneWidget);
       final cards = find.byType(ProductCard);
       if (size.width >= 700) {

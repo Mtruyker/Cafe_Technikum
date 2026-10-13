@@ -47,16 +47,21 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Icon(Icons.local_cafe_rounded, size: 24),
                 SizedBox(width: 10),
-                Text('КафеТехникум'),
+                Flexible(
+                  child: Text(
+                    'КафеТехникум',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
             actions: [
-              if (!showGuestBottomNavigation)
-                IconButton(
-                  tooltip: 'Панель персонала',
-                  onPressed: () => context.push('/staff'),
-                  icon: const Icon(Icons.admin_panel_settings_outlined),
-                ),
+              IconButton(
+                tooltip: 'Панель персонала',
+                onPressed: () => context.push('/staff'),
+                icon: const Icon(Icons.admin_panel_settings_outlined),
+              ),
               IconButton(
                 tooltip: 'Отслеживание заказа',
                 onPressed: () => context.push('/tracking'),

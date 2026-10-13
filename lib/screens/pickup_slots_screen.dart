@@ -15,6 +15,7 @@ class _PickupSlotsScreenState extends State<PickupSlotsScreen> {
   List<PickupSlot> _slots = [];
   bool _busy = false;
   String? _error;
+  String? _result;
   final _capacity = TextEditingController(text: '30');
   DateTime _date = DateTime.now().toUtc().add(const Duration(hours: 4));
   @override
@@ -40,6 +41,7 @@ class _PickupSlotsScreenState extends State<PickupSlotsScreen> {
     setState(() {
       _busy = true;
       _error = null;
+      _result = null;
     });
     try {
       await action();
@@ -65,6 +67,9 @@ class _PickupSlotsScreenState extends State<PickupSlotsScreen> {
     final state = context.read<TechCafeState>();
     await _run(() async {
       await _reload();
+      var added = 0;
+      var closed = 0;
+      var existing = 0;
       for (final (hour, minute) in [(10, 0), (11, 40), (13, 40)]) {
         final start = DateTime.utc(
           _date.year,
@@ -73,10 +78,14 @@ class _PickupSlotsScreenState extends State<PickupSlotsScreen> {
           hour,
           minute,
         ).subtract(const Duration(hours: 4));
-        if (start
-                .subtract(const Duration(minutes: 5))
-                .isBefore(DateTime.now()) ||
-            _slots.any((s) => s.startsAt.isAtSameMomentAs(start))) {
+        if (!start
+            .subtract(const Duration(minutes: 5))
+            .isAfter(DateTime.now())) {
+          closed++;
+          continue;
+        }
+        if (_slots.any((s) => s.startsAt.isAtSameMomentAs(start))) {
+          existing++;
           continue;
         }
         await state.savePickupSlot(
@@ -84,8 +93,18 @@ class _PickupSlotsScreenState extends State<PickupSlotsScreen> {
           cutoffAt: start.subtract(const Duration(minutes: 5)),
           capacity: capacity,
         );
+        added++;
       }
       await _reload();
+      if (mounted) {
+        setState(() {
+          _result = added > 0
+              ? 'Добавлено перемен: $added. Уже существовали: $existing. Приём закрыт: $closed.'
+              : closed == 3
+              ? 'На выбранную дату приём заказов на все перемены уже закрыт. Выберите следующую дату.'
+              : 'Новых перемен нет: доступные перемены на эту дату уже добавлены. Проверьте их переключатели ниже. Приём закрыт: $closed.';
+        });
+      }
     });
   }
 
@@ -136,6 +155,11 @@ class _PickupSlotsScreenState extends State<PickupSlotsScreen> {
           child: const Text('Добавить перемены на дату'),
         ),
         if (_busy) const LinearProgressIndicator(),
+        if (_result != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(_result!, semanticsLabel: _result),
+          ),
         if (_error != null)
           Text(
             _error!,

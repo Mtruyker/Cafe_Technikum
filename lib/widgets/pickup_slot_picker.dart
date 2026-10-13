@@ -71,6 +71,9 @@ class _PickupSlotPickerState extends State<PickupSlotPicker> {
     final available = _slots
         .where((s) => s.fits(widget.portions, DateTime.now()))
         .toList();
+    final unavailableMessage = _slots.isEmpty
+        ? 'Расписание получения пока не опубликовано. Обратитесь к сотруднику кафе.'
+        : 'Нет доступного времени для этого заказа: приём закрыт или недостаточно свободных порций.';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -93,12 +96,12 @@ class _PickupSlotPickerState extends State<PickupSlotPicker> {
             style: TextStyle(color: Theme.of(context).colorScheme.error),
           ),
         if (!_loading && _error == null && available.isEmpty)
-          const Text(
-            'Нет слотов с достаточным количеством мест. Уменьшите заказ или попробуйте позднее.',
-          ),
+          Text(unavailableMessage),
         DropdownButtonFormField<String>(
           key: ValueKey('${widget.portions}:$_selected:${_slots.hashCode}'),
-          initialValue: _selected,
+          initialValue: available.any((s) => s.id == _selected)
+              ? _selected
+              : null,
           isExpanded: true,
           decoration: const InputDecoration(
             labelText: 'Время получения *',
@@ -115,16 +118,22 @@ class _PickupSlotPickerState extends State<PickupSlotPicker> {
                 ),
               )
               .toList(),
-          onChanged: _loading
+          onChanged: _loading || _error != null || available.isEmpty
               ? null
               : (value) {
                   setState(() => _selected = value);
                   widget.onChanged(value);
                 },
-          validator: (value) =>
-              value == null || !available.any((s) => s.id == value)
-              ? 'Выберите доступное время получения'
-              : null,
+          validator: (value) {
+            if (_loading) return 'Дождитесь загрузки времени получения';
+            if (_error != null) {
+              return 'Не удалось загрузить расписание. Нажмите «Обновить время».';
+            }
+            if (available.isEmpty) return unavailableMessage;
+            return value == null || !available.any((s) => s.id == value)
+                ? 'Выберите доступное время получения'
+                : null;
+          },
         ),
         if (_slots.length > available.length)
           const Padding(
